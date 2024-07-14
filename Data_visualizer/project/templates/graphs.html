@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+<head>
+    <title>Graphs and Data</title>
+    <style>
+        /* Styling for the arrow icon */
+        .arrow {
+            margin-left: 10px;
+            transition: transform 0.3s; /* Add a smooth transition effect on transform */
+        }
+        
+        /* Rotate the arrow icon when the content is visible */
+        .data-insights-content.visible .arrow {
+            transform: rotate(180deg);
+        }
+        
+        /* Hide the data-insights content by default */
+        .data-insights-content {
+            display: none;
+        }
+    .data-insights-content.visible {
+        display: block;
+        }
+        .data-insights {
+            margin-top: 20px;
+        }
+        
+        /* Styling for the data-insights header */
+        .data-insights-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        /* Styling for the arrow icon */
+        .arrow {
+            margin-left: 10px;
+        }
+        
+        /* Hide the data-insights content by default */
+        .data-insights-content {
+            display: none;
+        }
+        
+        /* Display the data-insights content when the .visible class is added */
+        .data-insights-content.visible {
+            display: block;
+        }
+        body {
+            background-color: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            color: #FF9800;
+        }
+        h2 {
+            color: #FF9800;
+        }
+        
+        /* Styling for the main content */
+        .content {
+            margin: 20px;
+            padding: 10px;
+            background-color: #333;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        
+        /* Styling for checkboxes */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 5px;
+            display: none;
+        }
+        
+        /* Custom orange color grading for checkboxes */
+        input[type="checkbox"] + label::before {
+            content: '\2713';
+            font-size: 14px;
+            color: #FF9800;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            line-height: 16px;
+            margin-right: 5px;
+            border: 2px solid #FF9800;
+            border-radius: 3px;
+        }
+        
+        /* Checked checkbox style */
+        input[type="checkbox"]:checked + label::before {
+            background-color: #FF9800;
+            color: #fff;
+        }
+        
+        /* Hide the checkboxes */
+        input[type="checkbox"] + label {
+            position: relative;
+            cursor: pointer;
+            padding-left: 25px;
+        }
+        
+        /* Graphs layout */
+        .graphs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .graph-item {
+            width: calc(33.33% - 20px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #444;
+        }
+        
+        .graph-item img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        
+        /* Styling for the submit button */
+        input[type="submit"] {
+            background-color: #FF9800;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #FFA726;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="top-5-rows">
+            <center><h1>Data visualizer</h1></center>
+            <h2>Top 5 Rows of Dataset</h2>
+            {{ top_5_rows | safe }}
+            <p>Number of Rows: {{ df_shape[0] }}</p>
+            <p>Number of Columns: {{ df_shape[1] }}</p>
+        </div>
+
+        <div class="data-insights">
+            <div class="data-insights-header" onclick="toggleDataInsights()">
+                <h2>Data Insights</h2>
+                <span class="arrow">&#9660;</span>
+            </div>
+            <div class="data-insights-content">
+                <p>
+                    The dataset contains {{ insights['Number of Rows'] }} rows and {{ insights['Number of Columns'] }} columns.
+                </p>
+                <p>
+                    The data types of columns are as follows:
+                </p>
+                <ul>
+                    {% for dtype, count in insights['Data Types'].items() %}
+                        <li>{{ dtype }}: {{ count }}</li>
+                    {% endfor %}
+                </ul>
+        
+                <p>
+                    Additional Insights:
+                </p>
+                <ul>
+                    <li>The average value of Numeric Columns (mean):</li>
+                    <ul>
+                        {% for column, mean in insights['Mean'].items() %}
+                            <li>{{ column }}: {{ mean }}</li>
+                        {% endfor %}
+                    </ul>
+        
+                    <li>The most frequently occuring value in the Columns (mode):</li>
+                    <ul>
+                        {% for column, mode in insights['Mode'].items() %}
+                            <li>{{ column }}: {{ mode }}</li>
+                        {% endfor %}
+                    </ul>
+        
+                    <li>The middle value in Numeric Columns(median):</li>
+                    <ul>
+                        {% for column, median in insights['Median'].items() %}
+                            <li>{{ column }}: {{ median }}</li>
+                        {% endfor %}
+                    </ul>
+        
+                    <li>Range of Numeric Columns:</li>
+                    <ul>
+                        {% for column, range in insights['Range'].items() %}
+                            <li>{{ column }}: {{ range }}</li>
+                        {% endfor %}
+                    </ul>
+                </ul>
+            </div>
+        </div>
+
+        <div class="categorized-columns">
+            <h2>Categorized Columns</h2>
+            <form method="POST">
+                <div class="checkbox-container">
+                    <input type="checkbox" name="select_all_columns" id="select_all_columns" onclick="toggleAllColumns(this)">
+                    <label for="select_all_columns">Select All Columns</label>
+                </div>
+                {% for column in categorized_columns %}
+                    <div class="checkbox-container">
+                        <input type="checkbox" name="selected_columns" value="{{ column }}" id="{{ column }}">
+                        <label for="{{ column }}">{{ column }}</label>
+                    </div>
+                {% endfor %}
+
+                <h2>Graph Types</h2>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="select_all_graphs" id="select_all_graphs" onclick="toggleAllGraphs(this)">
+                    <label for="select_all_graphs">Select All Graphs</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="bar" id="graph_type_bar">
+                    <label for="graph_type_bar">Bar Graph</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="pie" id="graph_type_pie">
+                    <label for="graph_type_pie">Pie Chart</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="line" id="graph_type_line">
+                    <label for="graph_type_line">Line Plot</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="scatter" id="graph_type_scatter">
+                    <label for="graph_type_scatter">Scatter Plot</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="box" id="graph_type_box">
+                    <label for="graph_type_box">Box Plot</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" name="graph_type" value="hist" id="graph_type_hist">
+                    <label for="graph_type_hist">Histogram</label>
+                </div>
+                <!-- Submit button for both column and graph type selections -->
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+
+        <div class="plots">
+            <div class="graphs-container">
+                {% for graph in selected_graphs %}
+                    <div class="graph-item">
+                        <h3>{{ graph.name }}</h3>
+                        <img src="data:image/png;base64,{{ graph.html }}" alt="{{ graph.name }}">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleDataInsights() {
+            const insightsContent = document.querySelector('.data-insights-content');
+            const arrowIcon = document.querySelector('.data-insights-header .arrow');
+            insightsContent.classList.toggle('visible');
+            // Change arrow icon based on visibility
+            if (insightsContent.classList.contains('visible')) {
+                arrowIcon.innerHTML = '&#9650;'; // Upright arrow
+            } else {
+                arrowIcon.innerHTML = '&#9660;'; // Downward arrow
+            }
+        }
+
+        function toggleAllColumns(checkbox) {
+            const columnCheckboxes = document.querySelectorAll('input[name="selected_columns"]');
+            columnCheckboxes.forEach(checkbox => {
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+
+        function toggleAllGraphs(checkbox) {
+            const graphCheckboxes = document.querySelectorAll('input[name="graph_type"]');
+            graphCheckboxes.forEach(checkbox => {
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+    </script>
+</body>
+</html>
